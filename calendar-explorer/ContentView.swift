@@ -2,12 +2,13 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var dateInfo = DateInfo()
-    @State private var timeScale: TimeScale = .timeOfDay
+    @State private var timeScale: TimeScale = .week
     
     var body: some View {
         VStack() {
             Spacer()
             switch timeScale {
+            case .week: WeekView(dateInfo: dateInfo)
             case .day: DayView(dateInfo: dateInfo)
             case .timeOfDay: TimeOfDayView(dateInfo: dateInfo)
             }
@@ -28,8 +29,24 @@ struct ContentView: View {
 }
 
 enum TimeScale {
+    case week
     case day
     case timeOfDay
+}
+
+struct WeekView: View {
+    @ObservedObject var dateInfo: DateInfo
+    var body: some View {
+        VStack(spacing: 8) {
+            Text("Week \(dateInfo.weekOfYear) of \(String(dateInfo.year))")
+                .font(.title)
+            Text("Week \(dateInfo.weekOfQuarter) of Quarter \(dateInfo.quarterOfYear)")
+                .font(.title)
+            Text(dateInfo.weekDateRangeDescription)
+                .font(.title2)
+        }
+        .padding()
+    }
 }
 
 struct DayView: View {
@@ -94,6 +111,10 @@ class DateInfo: ObservableObject {
     
     func moveForward(by timeScale: TimeScale) {
         switch timeScale {
+        case .week:
+            if let newDate = calendar.date(byAdding: .day, value: 7, to: date) {
+                date = newDate
+            }
         case .day:
             if let newDate = calendar.date(byAdding: .day, value: 1, to: date) {
                 date = newDate
@@ -107,6 +128,10 @@ class DateInfo: ObservableObject {
     
     func moveBackward(by timeScale: TimeScale) {
         switch timeScale {
+        case .week:
+            if let newDate = calendar.date(byAdding: .day, value: -7, to: date) {
+                date = newDate
+            }
         case .day:
             if let newDate = calendar.date(byAdding: .day, value: -1, to: date) {
                 date = newDate
@@ -122,6 +147,10 @@ class DateInfo: ObservableObject {
         calendar.component(.year, from: date)
     }
     
+    var quarterOfYear: Int {
+        (weekOfYear - 1) / 13 + 1
+    }
+    
     var monthName: String {
         let monthIndex = calendar.component(.month, from: date) - 1
         return calendar.monthSymbols[monthIndex]
@@ -129,6 +158,22 @@ class DateInfo: ObservableObject {
     
     var weekOfYear: Int {
         calendar.component(.weekOfYear, from: date)
+    }
+    
+    var weekOfQuarter: Int {
+        (weekOfYear - 1) % 13 + 1
+    }
+    
+    var weekDateRangeDescription: String {
+        let startOfWeek = calendar.date(byAdding: .day, value: 1-dayOfWeek, to: date)!
+        let startDay = calendar.component(.day, from: startOfWeek)
+        let startMonthName = calendar.monthSymbols[calendar.component(.month, from: startOfWeek)-1]
+        
+        let endOfWeek = calendar.date(byAdding: .day, value: 6, to: startOfWeek)!
+        let endDay = calendar.component(.day, from: endOfWeek)
+        let endMonthName = calendar.monthSymbols[calendar.component(.month, from: endOfWeek)-1]
+        
+        return "\(startDay)\(ordinalSuffix(of: startDay)) of \(startMonthName) - \(endDay)\(ordinalSuffix(of: endDay)) of \(endMonthName)"
     }
     
     var day: Int {
