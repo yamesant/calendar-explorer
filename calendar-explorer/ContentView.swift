@@ -2,12 +2,13 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var dateInfo = DateInfo()
-    @State private var timeScale: TimeScale = .week
+    @State private var timeScale: TimeScale = .quarter
     
     var body: some View {
         VStack() {
             Spacer()
             switch timeScale {
+            case .quarter: QuarterView(dateInfo: dateInfo)
             case .week: WeekView(dateInfo: dateInfo)
             case .day: DayView(dateInfo: dateInfo)
             case .timeOfDay: TimeOfDayView(dateInfo: dateInfo)
@@ -29,9 +30,21 @@ struct ContentView: View {
 }
 
 enum TimeScale {
+    case quarter
     case week
     case day
     case timeOfDay
+}
+
+struct QuarterView: View {
+    @ObservedObject var dateInfo: DateInfo
+    var body: some View {
+        VStack(spacing: 8) {
+            Text("Quarter \(dateInfo.quarterOfYear) of Year \(String(dateInfo.year))")
+                .font(.title)
+        }
+        .padding()
+    }
 }
 
 struct WeekView: View {
@@ -111,6 +124,10 @@ class DateInfo: ObservableObject {
     
     func moveForward(by timeScale: TimeScale) {
         switch timeScale {
+        case .quarter:
+            if let newDate = calendar.date(byAdding: .day, value: 91, to: date) {
+                date = newDate
+            }
         case .week:
             if let newDate = calendar.date(byAdding: .day, value: 7, to: date) {
                 date = newDate
@@ -128,6 +145,10 @@ class DateInfo: ObservableObject {
     
     func moveBackward(by timeScale: TimeScale) {
         switch timeScale {
+        case .quarter:
+            if let newDate = calendar.date(byAdding: .day, value: -91, to: date) {
+                date = newDate
+            }
         case .week:
             if let newDate = calendar.date(byAdding: .day, value: -7, to: date) {
                 date = newDate
