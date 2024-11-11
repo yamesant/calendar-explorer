@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var dateInfo = DateInfo()
-    @State private var timeScale: TimeScale = .quarter
+    @State private var timeScale: TimeScale = .day
     
     var body: some View {
         VStack() {
@@ -19,10 +19,19 @@ struct ContentView: View {
         .gesture(
             DragGesture()
                 .onEnded { value in
-                    if value.translation.width < 0 {
-                        dateInfo.moveForward(by: timeScale)
-                    } else {
-                        dateInfo.moveBackward(by: timeScale)
+                    if abs(value.translation.width) > abs(value.translation.height) {
+                        if value.translation.width < 0 {
+                            dateInfo.moveForward(by: timeScale)
+                        } else if value.translation.width > 0 {
+                            dateInfo.moveBackward(by: timeScale)
+                        }
+                    }
+                    else {
+                        if value.translation.height < 0 {
+                            timeScale = timeScale.down
+                        } else if value.translation.height > 0 {
+                            timeScale = timeScale.up
+                        }
                     }
                 }
         )
@@ -34,6 +43,22 @@ enum TimeScale {
     case week
     case day
     case timeOfDay
+    var up: TimeScale {
+        switch self {
+        case .quarter: return .quarter
+        case .week: return .quarter
+        case .day: return .week
+        case .timeOfDay: return .day
+        }
+    }
+    var down: TimeScale {
+        switch self {
+        case .quarter: return .week
+        case .week: return .day
+        case .day: return .timeOfDay
+        case .timeOfDay: return .timeOfDay
+        }
+    }
 }
 
 struct QuarterView: View {
@@ -70,6 +95,8 @@ struct DayView: View {
             Text("Day \(dateInfo.dayOfWeek) of Week \(dateInfo.weekOfYear)")
             Text(String(dateInfo.year))
         }
+        .font(.title)
+        .padding()
     }
 }
 
