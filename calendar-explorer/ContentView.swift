@@ -2,18 +2,17 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var dateInfo = DateInfo()
-    @State private var timeScale: TimeScale = .day
+    @State private var timeScale: TimeScale = .timeOfDay
     
     var body: some View {
         VStack() {
             Spacer()
             switch timeScale {
             case .day: DayView(dateInfo: dateInfo)
+            case .timeOfDay: TimeOfDayView(dateInfo: dateInfo)
             }
             Spacer()
         }
-        .font(.title)
-        .padding()
         .contentShape(Rectangle())
         .gesture(
             DragGesture()
@@ -30,6 +29,7 @@ struct ContentView: View {
 
 enum TimeScale {
     case day
+    case timeOfDay
 }
 
 struct DayView: View {
@@ -39,6 +39,47 @@ struct DayView: View {
             Text("\(dateInfo.dayOfWeekName), \(dateInfo.day)\(dateInfo.ordinalSuffix(of: dateInfo.day)) of \(dateInfo.monthName)")
             Text("Day \(dateInfo.dayOfWeek) of Week \(dateInfo.weekOfYear)")
             Text(String(dateInfo.year))
+        }
+    }
+}
+
+struct TimeOfDayView: View {
+    @ObservedObject var dateInfo: DateInfo
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: dateInfo.timeOfDay.imageName)
+                .resizable()
+                .scaledToFit()
+                .padding()
+            Text(dateInfo.timeOfDay.description)
+            Text("\(dateInfo.dayOfWeekName), \(dateInfo.day)\(dateInfo.ordinalSuffix(of: dateInfo.day)) of \(dateInfo.monthName)")
+            Text("Day \(dateInfo.dayOfWeek) of Week \(dateInfo.weekOfYear)")
+            Text(String(dateInfo.year))
+        }
+        .font(.title)
+        .padding()
+    }
+}
+
+enum TimeOfDay {
+    case night
+    case morning
+    case afternoon
+    case evening
+    var description: String {
+        switch self {
+        case .night: return "Night (12am - 6am)"
+        case .morning: return "Morning (6am - 12pm)"
+        case .afternoon: return "Afternoon (12pm - 6pm)"
+        case .evening: return "Evening (6pm - 12am)"
+        }
+    }
+    var imageName: String {
+        switch self {
+        case .morning: return "sunrise.fill"
+        case .afternoon: return "sun.max.fill"
+        case .evening: return "sunset.fill"
+        case .night: return "moon.stars.fill"
         }
     }
 }
@@ -57,6 +98,10 @@ class DateInfo: ObservableObject {
             if let newDate = calendar.date(byAdding: .day, value: 1, to: date) {
                 date = newDate
             }
+        case .timeOfDay:
+            if let newDate = calendar.date(byAdding: .hour, value: 6, to: date) {
+                date = newDate
+            }
         }
     }
     
@@ -64,6 +109,10 @@ class DateInfo: ObservableObject {
         switch timeScale {
         case .day:
             if let newDate = calendar.date(byAdding: .day, value: -1, to: date) {
+                date = newDate
+            }
+        case .timeOfDay:
+            if let newDate = calendar.date(byAdding: .hour, value: -6, to: date) {
                 date = newDate
             }
         }
@@ -94,6 +143,16 @@ class DateInfo: ObservableObject {
     var dayOfWeekName: String {
         let weekdayIndex = calendar.component(.weekday, from: date) - 1
         return calendar.weekdaySymbols[weekdayIndex]
+    }
+    
+    var timeOfDay: TimeOfDay {
+        let hour = calendar.component(.hour, from: date)
+        switch hour {
+        case 0..<6: return .night
+        case 6..<12: return .morning
+        case 12..<18: return .afternoon
+        default: return .evening
+        }
     }
     
     func ordinalSuffix(of number: Int) -> String {
