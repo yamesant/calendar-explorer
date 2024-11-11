@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    private let dateInfo = DateInfo()
+    @StateObject private var dateInfo = DateInfo()
     var body: some View {
         VStack {
             VStack(spacing: 8) {
@@ -11,17 +11,39 @@ struct ContentView: View {
             }
             .font(.title)
             .padding()
+            .gesture(
+                DragGesture()
+                    .onEnded { value in
+                        if value.translation.width < 0 {
+                            dateInfo.moveForward()
+                        } else {
+                            dateInfo.moveBackward()
+                        }
+                    }
+            )
         }
         .padding()
     }
 }
 
-struct DateInfo {
-    private let date: Date
+class DateInfo: ObservableObject {
+    @Published private var date: Date
     private let calendar = Calendar.current
     
     init(date: Date = Date()) {
         self.date = date
+    }
+    
+    func moveForward() {
+        if let newDate = calendar.date(byAdding: .day, value: 1, to: date) {
+            date = newDate
+        }
+    }
+    
+    func moveBackward() {
+        if let newDate = calendar.date(byAdding: .day, value: -1, to: date) {
+            date = newDate
+        }
     }
     
     var year: Int {
