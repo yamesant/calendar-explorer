@@ -5,12 +5,15 @@ struct ContentView: View {
     var body: some View {
         VStack {
             VStack(spacing: 8) {
+                Spacer()
                 Text("\(dateInfo.dayOfWeekName), \(dateInfo.day)\(dateInfo.ordinalSuffix(of: dateInfo.day)) of \(dateInfo.monthName)")
                 Text("Day \(dateInfo.dayOfWeek) of Week \(dateInfo.weekOfYear)")
                 Text(String(dateInfo.year))
+                Spacer()
             }
             .font(.title)
             .padding()
+            .contentShape(Rectangle())
             .gesture(
                 DragGesture()
                     .onEnded { value in
