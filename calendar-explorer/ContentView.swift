@@ -35,6 +35,21 @@ struct ContentView: View {
                     }
                 }
         )
+        .toolbar {
+            
+            ToolbarItemGroup(placement: .bottomBar) {
+                Button(action: {
+                    dateInfo.reset()
+                    timeScale = .day
+                }) {
+                    Image(systemName: "house")
+                        .padding(10)
+                        .background(.black)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+            }
+        }
     }
 }
 
@@ -147,6 +162,10 @@ class DateInfo: ObservableObject {
     
     init(date: Date = Date()) {
         self.date = date
+    }
+    
+    func reset() {
+        date = Date()
     }
     
     func moveForward(by timeScale: TimeScale) {
