@@ -2,30 +2,44 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var dateInfo = DateInfo()
+    @State private var timeScale: TimeScale = .day
+    
     var body: some View {
-        VStack {
-            VStack(spacing: 8) {
-                Spacer()
-                Text("\(dateInfo.dayOfWeekName), \(dateInfo.day)\(dateInfo.ordinalSuffix(of: dateInfo.day)) of \(dateInfo.monthName)")
-                Text("Day \(dateInfo.dayOfWeek) of Week \(dateInfo.weekOfYear)")
-                Text(String(dateInfo.year))
-                Spacer()
+        VStack() {
+            Spacer()
+            switch timeScale {
+            case .day: DayView(dateInfo: dateInfo)
             }
-            .font(.title)
-            .padding()
-            .contentShape(Rectangle())
-            .gesture(
-                DragGesture()
-                    .onEnded { value in
-                        if value.translation.width < 0 {
-                            dateInfo.moveForward()
-                        } else {
-                            dateInfo.moveBackward()
-                        }
-                    }
-            )
+            Spacer()
         }
+        .font(.title)
         .padding()
+        .contentShape(Rectangle())
+        .gesture(
+            DragGesture()
+                .onEnded { value in
+                    if value.translation.width < 0 {
+                        dateInfo.moveForward(by: timeScale)
+                    } else {
+                        dateInfo.moveBackward(by: timeScale)
+                    }
+                }
+        )
+    }
+}
+
+enum TimeScale {
+    case day
+}
+
+struct DayView: View {
+    @ObservedObject var dateInfo: DateInfo
+    var body: some View {
+        VStack(spacing: 8) {
+            Text("\(dateInfo.dayOfWeekName), \(dateInfo.day)\(dateInfo.ordinalSuffix(of: dateInfo.day)) of \(dateInfo.monthName)")
+            Text("Day \(dateInfo.dayOfWeek) of Week \(dateInfo.weekOfYear)")
+            Text(String(dateInfo.year))
+        }
     }
 }
 
@@ -37,15 +51,21 @@ class DateInfo: ObservableObject {
         self.date = date
     }
     
-    func moveForward() {
-        if let newDate = calendar.date(byAdding: .day, value: 1, to: date) {
-            date = newDate
+    func moveForward(by timeScale: TimeScale) {
+        switch timeScale {
+        case .day:
+            if let newDate = calendar.date(byAdding: .day, value: 1, to: date) {
+                date = newDate
+            }
         }
     }
     
-    func moveBackward() {
-        if let newDate = calendar.date(byAdding: .day, value: -1, to: date) {
-            date = newDate
+    func moveBackward(by timeScale: TimeScale) {
+        switch timeScale {
+        case .day:
+            if let newDate = calendar.date(byAdding: .day, value: -1, to: date) {
+                date = newDate
+            }
         }
     }
     
