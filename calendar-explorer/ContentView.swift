@@ -43,7 +43,7 @@ struct DateInfo {
     
     var dayOfWeek: Int {
         let weekday = calendar.component(.weekday, from: date)
-        return weekday - calendar.firstWeekday + 1
+        return (weekday - calendar.firstWeekday + 7) % 7 + 1
     }
     
     var dayOfWeekName: String {
