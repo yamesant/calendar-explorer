@@ -5,48 +5,63 @@ struct ContentView: View {
     @State private var timeScale: TimeScale = .day
     
     var body: some View {
-        VStack() {
-            Spacer()
-            switch timeScale {
-            case .quarter: QuarterView(dateInfo: dateInfo)
-            case .week: WeekView(dateInfo: dateInfo)
-            case .day: DayView(dateInfo: dateInfo)
-            case .timeOfDay: TimeOfDayView(dateInfo: dateInfo)
-            }
-            Spacer()
-        }
-        .contentShape(Rectangle())
-        .gesture(
-            DragGesture()
-                .onEnded { value in
-                    if abs(value.translation.width) > abs(value.translation.height) {
-                        if value.translation.width < 0 {
-                            dateInfo.moveForward(by: timeScale)
-                        } else if value.translation.width > 0 {
-                            dateInfo.moveBackward(by: timeScale)
-                        }
-                    }
-                    else {
-                        if value.translation.height < 0 {
-                            timeScale = timeScale.down
-                        } else if value.translation.height > 0 {
-                            timeScale = timeScale.up
-                        }
-                    }
+        NavigationStack {
+            VStack() {
+                Spacer()
+                switch timeScale {
+                case .quarter: QuarterView(dateInfo: dateInfo)
+                case .week: WeekView(dateInfo: dateInfo)
+                case .day: DayView(dateInfo: dateInfo)
+                case .timeOfDay: TimeOfDayView(dateInfo: dateInfo)
                 }
-        )
-        .toolbar {
-            
-            ToolbarItemGroup(placement: .bottomBar) {
-                Button(action: {
-                    dateInfo.reset()
-                    timeScale = .day
-                }) {
-                    Image(systemName: "house")
-                        .padding(10)
-                        .background(.black)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
+                Spacer()
+            }
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture()
+                    .onEnded { value in
+                        if abs(value.translation.width) > abs(value.translation.height) {
+                            if value.translation.width < 0 {
+                                dateInfo.moveForward(by: timeScale)
+                            } else if value.translation.width > 0 {
+                                dateInfo.moveBackward(by: timeScale)
+                            }
+                        }
+                        else {
+                            if value.translation.height < 0 {
+                                timeScale = timeScale.down
+                            } else if value.translation.height > 0 {
+                                timeScale = timeScale.up
+                            }
+                        }
+                    }
+            )
+            .toolbar {
+                
+                ToolbarItemGroup(placement: .bottomBar) {
+                    
+                    Picker("Time Scale", selection: $timeScale) {
+                        Text("Quarter").tag(TimeScale.quarter)
+                        Text("Week").tag(TimeScale.week)
+                        Text("Day").tag(TimeScale.day)
+                        Text("Time of Day").tag(TimeScale.timeOfDay)
+                    }
+                    .pickerStyle(MenuPickerStyle())
+                    .padding(10)
+                    .labelsHidden()
+                }
+                
+                ToolbarItemGroup(placement: .bottomBar) {
+                    Button(action: {
+                        dateInfo.reset()
+                        timeScale = .day
+                    }) {
+                        Image(systemName: "house")
+                            .padding(10)
+                            .background(.black)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                    }
                 }
             }
         }
